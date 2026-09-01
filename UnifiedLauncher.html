@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Local Web Launcher</title>
+  <style>
+    :root {
+      --bg: #121212;
+      --surface: #1e1e1e;
+      --primary: #bb86fc;
+      --text: #e0e0e0;
+      --border: #333;
+    }
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+    .centered {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      flex: 1;
+      gap: 16px;
+    }
+    button {
+      background: var(--primary);
+      color: #000;
+      border: none;
+      padding: 12px 24px;
+      font-size: 16px;
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    button:hover { opacity: 0.9; }
+    header {
+      padding: 16px 32px;
+      background: var(--surface);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid var(--border);
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+      gap: 24px;
+      padding: 32px;
+    }
+    .app-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      cursor: pointer;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .app-card:hover {
+      transform: translateY(-4px);
+      border-color: var(--primary);
+    }
+    .app-card img {
+      width: 80px;
+      height: 80px;
+      object-fit: cover;
+      border-radius: 12px;
+      margin-bottom: 12px;
+    }
+    .app-card h3 { margin: 0; font-size: 16px; }
+    dialog {
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 24px;
+      max-width: 400px;
+      width: 90%;
+    }
+    dialog::backdrop { background: rgba(0,0,0,0.7); }
+    form { display: flex; flex-direction: column; gap: 12px; }
+    input, textarea {
+      background: #2b2b2b;
+      border: 1px solid var(--border);
+      color: #fff;
+      padding: 8px;
+      border-radius: 6px;
+    }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+
+  <!-- Landing View -->
+  <div id="setup-view" class="centered">
+    <button id="btn-select-dir">Select Apps Directory</button>
+  </div>
+
+  <!-- Reconnect View (Prompted on next launch) -->
+  <div id="reconnect-view" class="centered hidden">
+    <h2>Restore Apps Directory</h2>
+    <p>Grant permission to access your saved apps folder.</p>
+    <button id="btn-reconnect">Grant Directory Access</button>
+  </div>
+
+  <!-- Main Launcher View -->
+  <div id="launcher-view" class="hidden">
+    <header>
+      <h2>App Launcher</h2>
+      <button id="btn-import">Import App</button>
+    </header>
+    <div id="apps-grid" class="grid"></div>
+  </div>
+
+  <!-- Add App Modal -->
+  <dialog id="modal-add-app">
+    <form id="form-add-app">
+      <h3>Import App Details</h3>
+      <label>App Title</label>
+      <input type="text" id="input-title" required />
+
+      <label>Description</label>
+      <textarea id="input-desc" rows="3" required></textarea>
+
+      <label>App Icon (Image)</label>
+      <input type="file" id="input-icon" accept="image/*" required />
+
+      <div class="dialog-actions">
+        <button type="button" id="btn-cancel-add">Cancel</button>
+        <button type="submit">Save & Import</button>
+      </div>
+    </form>
+  </dialog>
+
+  <!-- App Info Modal -->
+  <dialog id="modal-app-detail">
+    <div style="text-align: center;">
+      <img id="detail-img" src="" style="width: 96px; height: 96px; border-radius: 12px; object-fit: cover;" />
+      <h2 id="detail-title"></h2>
+      <p id="detail-desc"></p>
+      <div class="dialog-actions" style="justify-content: center;">
+        <button id="btn-launch">Launch App</button>
+        <button id="btn-close-detail">Close</button>
+      </div>
+    </div>
+  </dialog>
+
+  <script>
+    let dirHandle = null;
+    let pendingFileHandle = null;
+    let appsData = [];
+    let selectedApp = null;
+
+    // --- IndexedDB for Directory Handle Persistence ---
+    function openDB() {
+      return new Promise((resolve, reject) => {
+        const req = indexedDB.open('LauncherDB', 1);
+        req.onupgradeneeded = () => req.result.createObjectStore('handles');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+    }
+
+    async function saveDirectoryHandle(handle) {
+      const db = await openDB();
+      const tx = db.transaction('handles', 'readwrite');
+      tx.objectStore('handles').put(handle, 'appsDirectory');
+    }
+
+    async function getDirectoryHandle() {
+      const db = await openDB();
+      const tx = db.transaction('handles', 'readonly');
+      return new Promise((resolve) => {
+        const req = tx.objectStore('handles').get('appsDirectory');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => resolve(null);
+      });
+    }
+
+    // --- Application Initialization ---
+    window.addEventListener('DOMContentLoaded', async () => {
+      dirHandle = await getDirectoryHandle();
+      if (dirHandle) {
+        // Query handle permission state
+        const status = await dirHandle.queryPermission({ mode: 'readwrite' });
+        if (status === 'granted') {
+          await loadAppsDirectory();
+        } else {
+          document.getElementById('setup-view').classList.add('hidden');
+          document.getElementById('reconnect-view').classList.remove('hidden');
+        }
+      }
+    });
+
+    document.getElementById('btn-reconnect').addEventListener('click', async () => {
+      const permission = await dirHandle.requestPermission({ mode: 'readwrite' });
+      if (permission === 'granted') {
+        document.getElementById('reconnect-view').classList.add('hidden');
+        await loadAppsDirectory();
+      }
+    });
+
+    // --- Directory Selection & Loading ---
+    document.getElementById('btn-select-dir').addEventListener('click', async () => {
+      try {
+        dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        await saveDirectoryHandle(dirHandle);
+        await initOrReadAppsJson();
+        showLauncherView();
+      } catch (err) {
+        console.error('Directory selection cancelled or failed:', err);
+      }
+    });
+
+    async function loadAppsDirectory() {
+      await initOrReadAppsJson();
+      showLauncherView();
+    }
+
+    async function initOrReadAppsJson() {
+      try {
+        const jsonFileHandle = await dirHandle.getFileHandle('apps.json', { create: true });
+        const file = await jsonFileHandle.getFile();
+        const content = await file.text();
+        if (content.trim()) {
+          appsData = JSON.parse(content);
+        } else {
+          appsData = [];
+          await writeAppsJson();
+        }
+      } catch (e) {
+        appsData = [];
+        await writeAppsJson();
+      }
+    }
+
+    async function writeAppsJson() {
+      const jsonFileHandle = await dirHandle.getFileHandle('apps.json', { create: true });
+      const writable = await jsonFileHandle.createWritable();
+      await writable.write(JSON.stringify(appsData, null, 2));
+      await writable.close();
+    }
+
+    function showLauncherView() {
+      document.getElementById('setup-view').classList.add('hidden');
+      document.getElementById('reconnect-view').classList.add('hidden');
+      document.getElementById('launcher-view').classList.remove('hidden');
+      renderGrid();
+    }
+
+    // --- Grid Rendering ---
+    function renderGrid() {
+      const grid = document.getElementById('apps-grid');
+      grid.innerHTML = '';
+      appsData.forEach((app) => {
+        const card = document.createElement('div');
+        card.className = 'app-card';
+        card.innerHTML = `
+          <img src="${app.iconData}" alt="${app.title}" />
+          <h3>${app.title}</h3>
+        `;
+        card.addEventListener('click', () => openDetailModal(app));
+        grid.appendChild(card);
+      });
+    }
+
+    // --- Import Flow ---
+    document.getElementById('btn-import').addEventListener('click', async () => {
+      try {
+        const [fileHandle] = await window.showOpenFilePicker({
+          types: [{ description: 'HTML Files', accept: { 'text/html': ['.html', '.htm'] } }]
+        });
+        pendingFileHandle = fileHandle;
+        document.getElementById('modal-add-app').showModal();
+      } catch (err) {
+        console.log('File selection cancelled:', err);
+      }
+    });
+
+    document.getElementById('btn-cancel-add').addEventListener('click', () => {
+      document.getElementById('modal-add-app').close();
+    });
+
+    document.getElementById('form-add-app').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const title = document.getElementById('input-title').value;
+      const desc = document.getElementById('input-desc').value;
+      const iconInput = document.getElementById('input-icon').files[0];
+
+      // Convert image file to base64 Data URL for JSON storage
+      const iconData = await new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.readAsDataURL(iconInput);
+      });
+
+      // Save imported HTML file into target directory
+      const originalFile = await pendingFileHandle.getFile();
+      const filename = originalFile.name;
+      const targetFileHandle = await dirHandle.getFileHandle(filename, { create: true });
+      const writable = await targetFileHandle.createWritable();
+      await writable.write(await originalFile.arrayBuffer());
+      await writable.close();
+
+      // Append metadata to apps.json
+      appsData.push({ title, description: desc, iconData, htmlFile: filename });
+      await writeAppsJson();
+
+      document.getElementById('form-add-app').reset();
+      document.getElementById('modal-add-app').close();
+      renderGrid();
+    });
+
+    // --- Detail & Execution Flow ---
+    function openDetailModal(app) {
+      selectedApp = app;
+      document.getElementById('detail-title').textContent = app.title;
+      document.getElementById('detail-desc').textContent = app.description;
+      document.getElementById('detail-img').src = app.iconData;
+      document.getElementById('modal-app-detail').showModal();
+    }
+
+    document.getElementById('btn-close-detail').addEventListener('click', () => {
+      document.getElementById('modal-app-detail').close();
+    });
+
+    document.getElementById('btn-launch').addEventListener('click', async () => {
+  if (!selectedApp) return;
+  try {
+    // 1. Get the HTML file handle and read its text content
+    const fileHandle = await dirHandle.getFileHandle(selectedApp.htmlFile);
+    const file = await fileHandle.getFile();
+    const htmlContent = await file.text();
+
+    // 2. Open a new tab
+    const newWin = window.open('about:blank', '_blank');
+
+    if (newWin) {
+      // 3. Inject the HTML string into the new tab's document stream
+      newWin.document.open();
+      newWin.document.write(htmlContent);
+      newWin.document.close();
+    } else {
+      alert('Popup blocker blocked launching the app. Please allow popups for this site.');
+    }
+  } catch (err) {
+    console.error('Failed to launch application:', err);
+    alert('Could not read or launch the selected HTML file.');
+  }
+});
+  </script>
+</body>
+</html>

@@ -1,0 +1,808 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>UnifiedFront</title>
+        <style>
+            @import url('https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;500;600;700&display=swap');
+
+            *, *::before, *::after {
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: 'Open Sans', sans-serif;
+                margin: 0;
+                padding: 0;
+                background: rgb(0, 0, 0);
+                color: #fff;
+                overflow-x: hidden;
+            }
+
+            nav {
+                position: sticky;
+                top: 0;
+                z-index: 99;
+                background-color: rgba(0, 0, 0, 0);
+                padding: 20px;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+            }
+
+            nav .brand {
+                font-size: 24px;
+                font-weight: bold;
+            }
+
+            nav .nav-actions {
+                display: flex; 
+                gap: 12px; 
+                align-items: center;
+            }
+
+            nav .dir-status {
+                font-size: 15px;
+                padding: 6px 12px;
+                border-radius: 20px;
+                background: rgba(94, 93, 93, 0.555);
+                backdrop-filter: blur(5px);
+                -webkit-backdrop-filter: blur(5px);
+                border: rgba(51, 51, 51, 0.301) solid 2px;
+            }
+
+            nav .dir-status.connected {
+                background: rgba(0, 255, 42, 0.555);
+            }
+
+            .btn-primary {
+                background: #0003be;
+                color: #fff;
+                border: rgba(0, 5, 71, 0.301) solid 2px;
+                padding: 12px 15px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+                font-size: 15px;
+            }
+
+            .btn-primary:hover {
+                background: #4244c9;
+            }
+
+            section.hero {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-height: 100dvh; 
+                margin-top: -84px;
+                background-image: url('https://media0.giphy.com/media/v1.Y2lkPTc5MGI3NjExcHo1MXpkNG12d2t6azVzdXp2bjQ1MnJiMWxnYXZ2ZzBhcmtwMjN5MSZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/l1J9PnuDqssiDjSve/giphy.gif');
+                background-size: cover;
+                border-bottom: rgba(51, 51, 51, 0.301) solid 2px;
+            }
+
+            #hero-card {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                min-width: calc(100% - 32px);
+                flex: 1;
+                text-align: center;
+                border-radius: 30px;
+                background-color: rgba(0, 0, 0, 0.555);
+                border: rgba(51, 51, 51, 0.301) solid 2px;
+                backdrop-filter: blur(15px);
+                -webkit-backdrop-filter: blur(15px);
+                margin: 15px;
+                margin-top: 84px;
+            }
+
+            #hero-card h1 {
+                font-size: 32px;
+                margin: 0 0 12px 0;
+                font-weight: 700;
+            }
+
+            #hero-card p {
+                font-size: 18px;
+                margin: 0 0 24px 0;
+            }
+
+            .btn-secondary {
+                background: #0003be;
+                color: #fff;
+                border: rgba(0, 5, 71, 0.301) solid 2px;
+                padding: 12px 15px;
+                border-radius: 10px;
+                cursor: pointer;
+                transition: all 0.2s ease-in-out;
+                font-size: 15px;
+            }
+
+            .btn-secondary:hover {
+                background: #4244c9;
+            }
+
+            .controls {
+                width: 100%;
+                padding: 20px; /* Optional spacing around the filter bar */
+            }
+
+            /* Make the filter container itself the flexbox */
+            .filter-bar {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 10px;
+                align-items: center;
+            }
+
+            /* Style individual chips */
+            .chip {
+                padding: 8px 16px;
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                cursor: pointer;
+                user-select: none;
+                transition: all 0.2s ease-in-out;
+            }
+
+            .chip:hover {
+                background: rgba(255, 255, 255, 0.2);
+            }
+
+            .chip.active {
+                background: #0003be;
+                border-color: rgba(0, 5, 71, 0.301);
+            }
+
+            .chip.active:hover {
+                background: #4244c9;
+            }
+
+            .store-grid {
+                display: grid;
+                grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+                gap: 20px;
+                padding: 20px;
+            }
+
+            .app-card {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                padding: 20px;
+                display: flex;
+                flex-direction: column;
+                cursor: pointer;
+                transition: transform 0.2s ease-in-out, background-color 0.2s ease-in-out;
+            }
+
+            .app-card:hover {
+                transform: translateY(-4px);
+                background-color: rgba(255, 255, 255, 0.2);
+            }
+
+            .app-card img {
+                border-radius: 10px;
+            }
+
+            .app-card p {
+                display: -webkit-box;
+                line-clamp: 3;
+                -webkit-line-clamp: 3;
+                -webkit-box-orient: vertical;
+                overflow: hidden;
+                margin: 8px 0 12px 0;
+                line-height: 1.4;
+            }
+
+            .card-tags {
+                display: flex;
+                gap: 8px;
+                margin-top: auto;
+            }
+
+            .tag {
+                background: rgba(255, 255, 255, 0.1);
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                padding: 4px 8px;
+                font-size: 12px;
+                color: #fff;
+            }
+
+            /* Dialog Backdrop Blur */
+            #modal-app-details::backdrop {
+                background: rgba(0, 0, 0, 0.7);
+                backdrop-filter: blur(8px);
+                -webkit-backdrop-filter: blur(8px);
+            }
+
+            /* Dialog Container */
+            #modal-app-details {
+                width: min(70vw, 850px); /* Uses 70vw on desktop, but prevents shrinking too small */
+                max-height: 85vh;
+                padding: 24px;
+                background: rgb(18, 18, 18, 0.301);
+                color: #fff;
+                border: 1px solid rgba(255, 255, 255, 0.2);
+                border-radius: 20px;
+                margin: auto;
+                overflow: hidden; /* FIX: Prevents child elements from clipping off the border-radius */
+                box-sizing: border-box;
+            }
+
+            /* Internal Grid Layout */
+            .modal-content {
+                display: grid;
+                grid-template-columns: 1fr 1fr; /* Fixed 50/50 split */
+                gap: 24px;
+                align-items: start;
+                width: 100%;
+            }
+
+            /* Left Half - Square Image Container */
+            .modal-media {
+                width: 100%;
+                aspect-ratio: 1 / 1;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                overflow: hidden;
+            }
+
+            .modal-media img {
+                width: 100%;
+                height: 100%;
+                object-fit: contain; /* Keeps full image visible in square box without distortion */
+                border-radius: 10px;
+            }
+
+            /* Right Half - App Info & Actions */
+            .modal-info {
+                display: flex;
+                flex-direction: column;
+                height: 100%;
+            }
+
+            .modal-header-text h2 {
+                margin: 0 0 8px 0;
+                font-size: 24px;
+            }
+
+            .modal-info p {
+                color: #ccc;
+                line-height: 1.5;
+                margin: 16px 0;
+            }
+
+            .modal-actions {
+                display: flex;
+                gap: 12px;
+                margin-top: auto;
+            }
+
+            /* 
+            Only stack on actual mobile screens (< 640px)
+            and widen the modal to 90vw on small viewports so it has space.
+            */
+            @media (max-width: 748px) {
+                #modal-app-details {
+                    width: 90vw;
+                    padding: 16px;
+                    overflow-y: auto; /* Allows scrolling on tiny mobile screens if needed */
+                }
+
+                .modal-content {
+                    grid-template-columns: 1fr; /* Switch to single column on mobile only */
+                    gap: 16px;
+                }
+
+                .modal-media {
+                    max-width: 220px;
+                    margin: 0 auto;
+                }
+
+                .modal-actions {
+                    margin-top: 16px;
+                }
+            }
+
+            img {
+                max-width: 100%;
+                height: auto;
+                display: block;
+            }
+
+        </style>
+    </head>
+    <body>
+        <!-- Navbar -->
+        <nav>
+            <div class="brand">UnifiedFront</div>
+            <div class="nav-actions">
+            <span id="dir-status" class="dir-status">No Directory Connected</span>
+            <button id="btn-select-dir" class="btn-primary">Select Apps Directory</button>
+            </div>
+        </nav>
+
+        <!-- Hero Section -->
+        <section class="hero">
+            <div id="hero-card">
+                <h1>A Decentralized, Local, Cross Platform Web App Store.</h1>
+                <p>
+                   Any app. Any platform. One click install. 
+                </p>
+                <!-- Points directly to your local file path and forces a download when clicked -->
+                <a id="btn-download-launcher" class="btn-secondary" href="./UnifiedLauncher.html" download="UnifiedLauncher.html" style="text-decoration: none;">
+                    Download UnifiedLauncher.html
+                </a>
+            </div>
+        </section>
+
+        <!-- Filtering Controls -->
+        <div class="controls">
+            <div class="filter-bar" id="category-filters">
+            <div class="chip active" data-filter="all">All</div>
+            <div class="chip" data-filter="App">Apps</div>
+            <div class="chip" data-filter="Game">Games</div>
+            <div class="chip" data-filter="works offline">Works Offline</div>
+            <div class="chip" data-filter="retro game">Retro Game</div>
+            <div class="chip" data-filter="modern game">Modern Game</div>
+            <div class="chip" data-filter="utility">Utility</div>
+            </div>
+        </div>
+
+        <!-- Store Items Grid -->
+        <main class="store-grid" id="store-grid"></main>
+
+        <!-- App Details Modal -->
+        <dialog id="modal-app-details">
+            <div class="modal-content">
+                <!-- Left Half: Photo -->
+                <div class="modal-media">
+                    <img id="modal-img" src="" alt="App Icon" />
+                </div>
+
+                <!-- Right Half: Header, Description, Actions -->
+                <div class="modal-info">
+                    <div class="modal-header-text">
+                        <h2 id="modal-title"></h2>
+                        <div id="modal-tags" class="card-tags"></div>
+                    </div>
+                    
+                    <p id="modal-desc"></p>
+                    
+                    <div class="modal-actions">
+                        <button id="btn-close-modal" class="btn-secondary">Close</button>
+                        <button id="btn-install" class="btn-primary">Install to Apps Directory</button>
+                    </div>
+                </div>
+            </div>
+        </dialog>
+
+        <script>
+            // ==========================================
+            // 1. MODULAR STORE DATABASE (Easy to adapt)
+            // ==========================================
+            const STORE_APPS = [
+            {
+                id: 'tic-tac-toe',
+                title: 'Retro Tic-Tac-Toe',
+                type: 'Game',
+                description: 'A classic offline Tic-Tac-Toe game featuring vector neon styling and local 2-player support.',
+                icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=tictactoe',
+                tags: ['Game', 'works offline', 'retro game'],
+                htmlContent: `<!DOCTYPE html><html><head><title>Tic Tac Toe</title><style>body{background:#111;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}.grid{display:grid;grid-template-columns:repeat(3,100px);gap:5px;}button{width:100px;height:100px;font-size:36px;background:#222;color:#fff;border:none;cursor:pointer;}</style></head><body><h1>Tic Tac Toe</h1><div class="grid" id="g"></div><script>let p='X',b=Array(9).fill('');const g=document.getElementById('g');for(let i=0;i<9;i++){let btn=document.createElement('button');btn.onclick=()=>{if(!b[i]){b[i]=p;btn.textContent=p;p=p==='X'?'O':'X';}};g.appendChild(btn);}<\/script></body></html>`
+            },
+            {
+                id: 'markdown-pad',
+                title: 'Minimal Markdown Editor',
+                type: 'App',
+                description: 'Lightweight offline Markdown editor with live preview and local file saving capabilities.',
+                icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=markdown',
+                tags: ['App', 'works offline', 'utility'],
+                htmlContent: `<!DOCTYPE html><html><head><title>Markdown Pad</title><style>body{margin:0;display:flex;height:100vh;background:#1e1e1e;color:#fff;font-family:sans-serif;}textarea,div{flex:1;padding:20px;border:none;}textarea{background:#252526;color:#fff;font-family:monospace;font-size:16px;outline:none;}</style></head><body><textarea id="in" placeholder="Type markdown..."></textarea><div id="out"></div><script>document.getElementById('in').oninput=(e)=>{document.getElementById('out').textContent=e.target.value;};<\/script></body></html>`
+            },
+            {
+                id: 'mario-kart-ds',
+                title: 'Mario Kart DS',
+                type: 'Game',
+                description: 'Rev up your engines and buckle up for Mario Kart DS! An all-star cast of karting veterans and newcomers compete for glory across 32 fiendishly-designed courses, including Grand Prix, Time Trial, VS., Battle and Mission modes.',
+                icon: 'https://gamesdb-images.launchbox.gg/r2_ab93466a-42b6-4adc-b93e-c7dd89e42485.png',
+                tags: ['Game', 'works offline', 'retro game'],
+                htmlUrl: "./apps/Mario Kart DS (USA, Australia) (En,Fr,De,Es,It).html"
+            },
+            {
+                id: '2048',
+                title: '2048',
+                type: 'Game',
+                description: 'The iconic number-merging game. Can you get to 2048?',
+                icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=2048',
+                tags: ['Game', 'modern game'],
+                htmlUrl: 'https://github.com/CoolDude2349/Offline-HTML-Games-Pack/blob/master/offline/2048.html'
+            }
+            ];
+
+            // ==========================================
+            // 2. STATE & ELEMENT REFERENCES
+            // ==========================================
+            let localDirHandle = null;
+            let selectedStoreApp = null;
+            let activeFilter = 'all';
+
+            const dirStatusEl = document.getElementById('dir-status');
+            const storeGridEl = document.getElementById('store-grid');
+            const modalDetails = document.getElementById('modal-app-details');
+            const actionBtn = document.getElementById('btn-install');
+
+            // ==========================================
+            // 3. DIRECTORY VERIFICATION LOGIC
+            // ==========================================
+            document.getElementById('btn-select-dir').addEventListener('click', async () => {
+            try {
+                const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+                
+                let hasAppsJson = false;
+                try {
+                await handle.getFileHandle('apps.json', { create: false });
+                hasAppsJson = true;
+                } catch (e) {
+                hasAppsJson = false;
+                }
+
+                if (hasAppsJson) {
+                localDirHandle = handle;
+                dirStatusEl.textContent = `Connected: ${handle.name}`;
+                dirStatusEl.classList.add('connected');
+                } else {
+                localDirHandle = null;
+                dirStatusEl.textContent = "No Directory Connected";
+                dirStatusEl.classList.remove('connected');
+
+                const userChoice = confirm(
+                    "Selected folder does not contain an 'apps.json' file.\n\nWould you like to download 'launcher.html' to set up your apps folder?"
+                );
+                if (userChoice) {
+                    triggerLauncherDownload();
+                }
+                }
+            } catch (err) {
+                console.log('Directory selection cancelled:', err);
+            }
+            });
+
+            function triggerLauncherDownload() {
+                // Direct browser navigation to fetch & download the static file directly
+                const a = document.createElement('a');
+                a.href = './UnifiedLauncher.html'; // Path to your local launcher file
+                a.download = 'UnifiedLauncher.html';
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+
+            document.getElementById('btn-download-launcher').addEventListener('click', triggerLauncherDownload);
+
+            // ==========================================
+            // 4. GRID RENDERING & FILTERING
+            // ==========================================
+            function renderStoreGrid() {
+            storeGridEl.innerHTML = '';
+            
+            const filtered = STORE_APPS.filter(app => {
+                if (activeFilter === 'all') return true;
+                return app.tags.includes(activeFilter);
+            });
+
+            filtered.forEach(app => {
+                const card = document.createElement('div');
+                card.className = 'app-card';
+                card.innerHTML = `
+                <img src="${app.icon}" alt="${app.title}" />
+                <h3>${app.title}</h3>
+                <p>${app.description}</p>
+                <div class="card-tags">
+                    ${app.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+                </div>
+                `;
+                card.addEventListener('click', () => openAppModal(app));
+                storeGridEl.appendChild(card);
+            });
+            }
+
+            document.getElementById('category-filters').addEventListener('click', (e) => {
+            if (!e.target.classList.contains('chip')) return;
+            document.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+            e.target.classList.add('active');
+            activeFilter = e.target.getAttribute('data-filter');
+            renderStoreGrid();
+            });
+
+            // ==========================================
+            // 5. HELPER FUNCTIONS FOR APP STATE & FILES
+            // ==========================================
+            async function getInstalledAppsList() {
+            if (!localDirHandle) return [];
+            try {
+                const jsonHandle = await localDirHandle.getFileHandle('apps.json', { create: false });
+                const jsonFile = await jsonHandle.getFile();
+                const jsonText = await jsonFile.text();
+                if (jsonText.trim()) {
+                return JSON.parse(jsonText);
+                }
+            } catch (e) {
+                // apps.json missing or invalid
+            }
+            return [];
+            }
+
+            async function updateModalButtonState() {
+            if (!selectedStoreApp) return;
+
+            const installedList = await getInstalledAppsList();
+            const fileName = `${selectedStoreApp.id}.html`;
+            const isInstalled = installedList.some(a => a.htmlFile === fileName);
+
+            if (isInstalled) {
+                actionBtn.textContent = 'Uninstall';
+                actionBtn.classList.add('is-uninstall');
+                actionBtn.dataset.action = 'uninstall';
+            } else {
+                actionBtn.textContent = 'Install';
+                actionBtn.classList.remove('is-uninstall');
+                actionBtn.dataset.action = 'install';
+            }
+            }
+
+            function formatDownloadUrl(url) {
+            let cleanUrl = url.trim();
+
+            if (cleanUrl.includes('github.com')) {
+                const ghPattern = /github\.com\/([^\/]+)\/([^\/]+)\/blob\/([^\/]+)\/(.+)/;
+                const match = cleanUrl.match(ghPattern);
+                if (match) {
+                const [, user, repo, branch, path] = match;
+                return `https://cdn.jsdelivr.net/gh/${user}/${repo}@${branch}/${path}`;
+                }
+            }
+
+            if (cleanUrl.includes('drive.google.com')) {
+                let fileId = '';
+                if (cleanUrl.includes('/file/d/')) {
+                fileId = cleanUrl.split('/file/d/')[1].split('/')[0];
+                } else if (cleanUrl.includes('id=')) {
+                fileId = new URL(cleanUrl).searchParams.get('id');
+                }
+                if (fileId) {
+                return `https://drive.google.com/uc?export=download&id=${fileId}`;
+                }
+            }
+
+            return cleanUrl;
+            }
+
+            async function fetchRawHtml(targetUrl) {
+            const formattedUrl = formatDownloadUrl(targetUrl);
+
+            try {
+                const res = await fetch(formattedUrl);
+                if (res.ok) {
+                return await res.text();
+                }
+            } catch (e) {
+                console.warn('Direct fetch failed. Trying proxy fallbacks...');
+            }
+
+            if (!formattedUrl.startsWith('http://') && !formattedUrl.startsWith('https://')) {
+                throw new Error(`Could not find local file at "${formattedUrl}".`);
+            }
+
+            try {
+                const proxyUrl1 = `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(formattedUrl)}`;
+                const res = await fetch(proxyUrl1);
+                if (res.ok) return await res.text();
+            } catch (e) {
+                console.warn('Proxy 1 failed.');
+            }
+
+            try {
+                const proxyUrl2 = `https://api.allorigins.win/get?url=${encodeURIComponent(formattedUrl)}`;
+                const res = await fetch(proxyUrl2);
+                if (res.ok) {
+                const data = await res.json();
+                if (data.contents) return data.contents;
+                }
+            } catch (e) {
+                console.warn('Proxy 2 failed.');
+            }
+
+            throw new Error('All download attempts failed or were blocked by network protections.');
+            }
+
+            async function saveAppToDirectory(app, htmlContent) {
+            const fileName = `${app.id}.html`;
+
+            // Write HTML File
+            const htmlFileHandle = await localDirHandle.getFileHandle(fileName, { create: true });
+            const writable = await htmlFileHandle.createWritable();
+            await writable.write(htmlContent);
+            await writable.close();
+
+            // Read and Update apps.json
+            const jsonHandle = await localDirHandle.getFileHandle('apps.json', { create: true });
+            const jsonFile = await jsonHandle.getFile();
+            const jsonText = await jsonFile.text();
+
+            let appsList = [];
+            if (jsonText.trim()) {
+                try { appsList = JSON.parse(jsonText); } catch(e) { appsList = []; }
+            }
+
+            const existingIndex = appsList.findIndex(a => a.htmlFile === fileName);
+            const newMetaData = {
+                title: app.title,
+                description: app.description,
+                iconData: app.icon,
+                htmlFile: fileName
+            };
+
+            if (existingIndex >= 0) {
+                appsList[existingIndex] = newMetaData;
+            } else {
+                appsList.push(newMetaData);
+            }
+
+            const jsonWritable = await jsonHandle.createWritable();
+            await jsonWritable.write(JSON.stringify(appsList, null, 2));
+            await jsonWritable.close();
+            }
+
+            async function uninstallAppFromDirectory(app) {
+            const fileName = `${app.id}.html`;
+
+            // 1. Delete HTML File
+            try {
+                await localDirHandle.removeEntry(fileName);
+            } catch (e) {
+                console.warn(`File ${fileName} was not found on disk, cleaning up apps.json entry.`);
+            }
+
+            // 2. Remove entry from apps.json
+            const jsonHandle = await localDirHandle.getFileHandle('apps.json', { create: true });
+            const jsonFile = await jsonHandle.getFile();
+            const jsonText = await jsonFile.text();
+
+            let appsList = [];
+            if (jsonText.trim()) {
+                try { appsList = JSON.parse(jsonText); } catch(e) { appsList = []; }
+            }
+
+            appsList = appsList.filter(a => a.htmlFile !== fileName);
+
+            const jsonWritable = await jsonHandle.createWritable();
+            await jsonWritable.write(JSON.stringify(appsList, null, 2));
+            await jsonWritable.close();
+            }
+
+            // ==========================================
+            // 6. MODAL & DYNAMIC ACTION HANDLERS
+            // ==========================================
+            async function openAppModal(app) {
+            selectedStoreApp = app;
+            document.getElementById('modal-img').src = app.icon;
+            document.getElementById('modal-title').textContent = app.title;
+            document.getElementById('modal-desc').textContent = app.description;
+            
+            const tagsEl = document.getElementById('modal-tags');
+            tagsEl.innerHTML = app.tags.map(t => `<span class="tag">${t}</span>`).join('');
+            
+            await updateModalButtonState();
+            modalDetails.showModal();
+            }
+
+            document.getElementById('btn-close-modal').addEventListener('click', () => {
+            modalDetails.close();
+            });
+
+            // Install / Uninstall Toggle Action
+            actionBtn.addEventListener('click', async () => {
+            if (!localDirHandle) {
+                alert("Please connect your Apps Directory using the top bar button first!");
+                return;
+            }
+
+            if (!selectedStoreApp) return;
+
+            const isUninstall = actionBtn.dataset.action === 'uninstall';
+
+            if (isUninstall) {
+                // UNINSTALL LOGIC
+                if (!confirm(`Are you sure you want to uninstall "${selectedStoreApp.title}"?`)) {
+                return;
+                }
+
+                try {
+                actionBtn.textContent = 'Uninstalling...';
+                actionBtn.disabled = true;
+
+                await uninstallAppFromDirectory(selectedStoreApp);
+
+                alert(`Successfully uninstalled "${selectedStoreApp.title}"!`);
+                modalDetails.close();
+                } catch (err) {
+                console.error('Uninstall error:', err);
+                alert(`Failed to uninstall: ${err.message}`);
+                } finally {
+                actionBtn.disabled = false;
+                await updateModalButtonState();
+                }
+
+            } else {
+                // INSTALL LOGIC
+                try {
+                actionBtn.textContent = 'Downloading...';
+                actionBtn.disabled = true;
+
+                let finalHtmlContent = '';
+
+                if (selectedStoreApp.htmlContent) {
+                    finalHtmlContent = selectedStoreApp.htmlContent;
+                } else if (selectedStoreApp.htmlUrl) {
+                    finalHtmlContent = await fetchRawHtml(selectedStoreApp.htmlUrl);
+                } else {
+                    throw new Error("No htmlUrl or htmlContent defined for this app.");
+                }
+
+                await saveAppToDirectory(selectedStoreApp, finalHtmlContent);
+
+                alert(`Successfully installed "${selectedStoreApp.title}"!`);
+                modalDetails.close();
+
+                } catch (err) {
+                console.error('Installation error:', err);
+
+                const manualCode = prompt(
+                    `Automatic download failed (${err.message}).\n\n` +
+                    `You can manually paste the HTML code for "${selectedStoreApp.title}" below to complete the install:`
+                );
+
+                if (manualCode && manualCode.trim()) {
+                    try {
+                    await saveAppToDirectory(selectedStoreApp, manualCode.trim());
+                    alert(`Successfully installed "${selectedStoreApp.title}" from manual input!`);
+                    modalDetails.close();
+                    } catch (saveErr) {
+                    alert(`Failed to save manual code: ${saveErr.message}`);
+                    }
+                }
+                } finally {
+                actionBtn.disabled = false;
+                await updateModalButtonState();
+                }
+            }
+            });
+
+            // Outside-click close listener
+            modalDetails.addEventListener('click', (e) => {
+            const dialogBounds = modalDetails.getBoundingClientRect();
+            if (
+                e.clientX < dialogBounds.left ||
+                e.clientX > dialogBounds.right ||
+                e.clientY < dialogBounds.top ||
+                e.clientY > dialogBounds.bottom
+            ) {
+                modalDetails.close();
+            }
+            });
+
+            // Initial Render
+            renderStoreGrid();
+        </script>
+    </body>
+</html>
