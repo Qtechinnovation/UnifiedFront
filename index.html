@@ -392,24 +392,6 @@
             // ==========================================
             const STORE_APPS = [
             {
-                id: 'tic-tac-toe',
-                title: 'Retro Tic-Tac-Toe',
-                type: 'Game',
-                description: 'A classic offline Tic-Tac-Toe game featuring vector neon styling and local 2-player support.',
-                icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=tictactoe',
-                tags: ['Game', 'works offline', 'retro game'],
-                htmlContent: `<!DOCTYPE html><html><head><title>Tic Tac Toe</title><style>body{background:#111;color:#fff;font-family:sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0;}.grid{display:grid;grid-template-columns:repeat(3,100px);gap:5px;}button{width:100px;height:100px;font-size:36px;background:#222;color:#fff;border:none;cursor:pointer;}</style></head><body><h1>Tic Tac Toe</h1><div class="grid" id="g"></div><script>let p='X',b=Array(9).fill('');const g=document.getElementById('g');for(let i=0;i<9;i++){let btn=document.createElement('button');btn.onclick=()=>{if(!b[i]){b[i]=p;btn.textContent=p;p=p==='X'?'O':'X';}};g.appendChild(btn);}<\/script></body></html>`
-            },
-            {
-                id: 'markdown-pad',
-                title: 'Minimal Markdown Editor',
-                type: 'App',
-                description: 'Lightweight offline Markdown editor with live preview and local file saving capabilities.',
-                icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=markdown',
-                tags: ['App', 'works offline', 'utility'],
-                htmlContent: `<!DOCTYPE html><html><head><title>Markdown Pad</title><style>body{margin:0;display:flex;height:100vh;background:#1e1e1e;color:#fff;font-family:sans-serif;}textarea,div{flex:1;padding:20px;border:none;}textarea{background:#252526;color:#fff;font-family:monospace;font-size:16px;outline:none;}</style></head><body><textarea id="in" placeholder="Type markdown..."></textarea><div id="out"></div><script>document.getElementById('in').oninput=(e)=>{document.getElementById('out').textContent=e.target.value;};<\/script></body></html>`
-            },
-            {
                 id: 'mario-kart-ds',
                 title: 'Mario Kart DS',
                 type: 'Game',
@@ -426,6 +408,66 @@
                 icon: 'https://api.dicebear.com/7.x/shapes/svg?seed=2048',
                 tags: ['Game', 'modern game'],
                 htmlUrl: 'https://github.com/CoolDude2349/Offline-HTML-Games-Pack/blob/master/offline/2048.html'
+            },
+            {
+                id: 'minecraft_1.12',
+                title: 'Minecraft',
+                type: 'Game',
+                description: 'Minecraft 1.12, available offline!',
+                icon: 'https://imgs.search.brave.com/Gf3nktj7DaN4z_vbHJBz9T66ScCq1MlTxJJOhJLqAl0/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9jZG4u/d29ybGR2ZWN0b3Js/b2dvLmNvbS9sb2dv/cy9taW5lY3JhZnQt/MS5zdmc',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/1.12.html"
+            },
+            {
+                id: 'fnaf-1',
+                title: 'FNAF 1',
+                type: 'Game',
+                description: 'The OG indie mascot horror game, now available offline.',
+                icon: 'https://imgs.search.brave.com/63PiPH_MxpUjICUVERW9eTiedCDg6rlPcxa-sdgBjcg/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pLnBp/bmltZy5jb20vb3Jp/Z2luYWxzL2QyL2Fm/LzQyL2QyYWY0MmQ0/MTQ4MjY0YTE4Yjdi/M2U0ZmVlN2Y0Y2U2/LmpwZw',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/fnaf.html"
+            },
+            {
+                id: 'fnaf-2',
+                title: 'FNAF 2',
+                type: 'Game',
+                description: 'The second entry in the FNAF franchise, now available offline.',
+                icon: 'https://imgs.search.brave.com/mor4VRZmqzEEfZGeyRXkZXm3QkzE-BQkfINn0ggE64M/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMtd2l4bXAtZWQz/MGE4NmI4YzRjYTg4/Nzc3MzU5NGMyLndp/eG1wLmNvbS9mLzM4/N2YwMjE3LWY1OTkt/NDRlMi05M2UzLTEy/NDg5NWQ2YThkYi9k/aDJyN24xLThmNzMx/OGI2LTgzOGYtNDU0/Ni04NWY1LTZlMWJi/MTEwMjVhYS5wbmc_/dG9rZW49ZXlKMGVY/QWlPaUpLVjFRaUxD/SmhiR2NpT2lKSVV6/STFOaUo5LmV5Snpk/V0lpT2lKMWNtNDZZ/WEJ3T2pkbE1HUXhP/RGc1T0RJeU5qUXpO/ek5oTldZd1pEUXhO/V1ZoTUdReU5tVXdJ/aXdpYVhOeklqb2lk/WEp1T21Gd2NEbzNa/VEJrTVRnNE9UZ3lN/alkwTXpjellUVm1N/R1EwTVRWbFlUQmtN/alpsTUNJc0ltOWlh/aUk2VzF0N0luQmhk/R2dpT2lJdlppOHpP/RGRtTURJeE55MW1O/VGs1TFRRMFpUSXRP/VE5sTXkweE1qUTRP/VFZrTm1FNFpHSXZa/R2d5Y2pkdU1TMDRa/amN6TVRoaU5pMDRN/emhtTFRRMU5EWXRP/RFZtTlMwMlpURmlZ/akV4TURJMVlXRXVj/RzVuSW4xZFhTd2lZ/WFZrSWpwYkluVnli/anB6WlhKMmFXTmxP/bVpwYkdVdVpHOTNi/bXh2WVdRaVhYMC5U/VWM2dlNPRk1DNVk0/QXI4anBaSEx5Qk1V/Q3AzTnFCUGFjOHJn/a2QtMDFB',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/fnaf-2.html"
+            },
+            {
+                id: 'fnaf-3',
+                title: 'FNAF 3',
+                type: 'Game',
+                description: 'The third entry in the FNAF franchise, now available offline.',
+                icon: 'https://imgs.search.brave.com/OfxPGOjxhm8ZL2VUI2ZEh6tdepvwwHzbp7DdmfXCTGI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9zdGF0/aWMud2lraWEubm9j/b29raWUubmV0L3Zp/ZGVvZ2FtaW5nL2lt/YWdlcy83Lzc4L0ZO/QUYzTG9nby5wbmcv/cmV2aXNpb24vbGF0/ZXN0L3NjYWxlLXRv/LXdpZHRoLWRvd24v/MjY4P2NiPTIwMjQw/MjA1MDM1MzI4',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/fnaf-3.html"
+            },
+            {
+                id: 'fnaf-4',
+                title: 'FNAF 4',
+                description: 'The fourth entry in the FNAF franchise, now available offline.',
+                icon: 'https://imgs.search.brave.com/Jv3zar-O593buabTijE8UbiIxrQzZfbws_VvzRBLNIs/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9leHRl/cm5hbC1wcmV2aWV3/LnJlZGQuaXQvb2Zm/aWNpYWwtZm5hZi00/LWljb24tdjAtXzhG/Rlp1aUJsRzBMQUk3/WE1TTDliaDl0VEJQ/TDhNam4yc25wLXpu/RDFSNC5qcGc_YXV0/bz13ZWJwJnM9YmEz/MjI1YjQ4YzExMjhh/NDBkMDEyZTFiMDQz/ZWU3OTkxMjFkZmZm/Mw',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/fnaf-4.html"
+            },
+            {
+                id: 'geometry-dash',
+                title: 'Geometry Dash',
+                description: 'The iconic Rhythm game.',
+                icon: 'https://imgs.search.brave.com/6q6zXQ0r_j8yZ98sEdnlUKOktazss1Q4HgJQoJD9J5g/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly93d3cu/cnctZGVzaWduZXIu/Y29tL2ljb24taW1h/Z2UvMzAzNTYvR2Vv/bWV0cnklMjBkYXNo/JTIwbG9nby5wbmc',
+                tags: ['Game', 'works offline'],
+                htmlUrl: "./apps/geometry-dash.html"
+            },
+            {
+                id: 'retro-bowl',
+                title: 'Retro Bowl',
+                description: 'The iconic retro-inspired football game.',
+                icon: 'https://imgs.search.brave.com/A0tub6haQ0_ieVAWB1De8xsqofrDB9_Xw5_aLxry9UI/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9saDMu/Z29vZ2xldXNlcmNv/bnRlbnQuY29tL2hG/QWtFaUI2RktoOFlW/OTJBelFJcXVyV3M0/RWtRY21JNWg0TWVf/N0kwbmNEZXZYMl9o/bUl1THYySlpnNDRk/XzR2VW5KOUxHcnlz/M3hhYXdQZllEV2FO/M2puX009czI3NS13/Mjc1LWgxNzU',
+                tags : ['Game', 'works offline'],
+                htmlUrl: "./apps/retro-bowl.html"
             }
             ];
 
