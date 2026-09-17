@@ -12,7 +12,7 @@ UnifiedFront is built on a single, simple file, called apps.json. All you have t
 
 1.  Portability
 
-Because of CORS limitations, only single file HTML web apps are supported. This has the side effect of making it incredibly easy to swap launchers and simplifies the standard for apps.json significantly.
+Because of CORS limitations, only single file HTML web apps are supported currently supported, because multiple file app support is significantly more difficult to implement. This has the side effect of making it incredibly easy to swap launchers and simplifies the standard for apps.json significantly.
 
 2. Ease of use
 
@@ -20,7 +20,7 @@ Because the entire standard is a single folder and one file, all you have to do 
 
 3. File size
 
-Because these are all HTML files, they are incredibly lightweight, not much more than 30MB at most.
+Because these are all HTML files, they are incredibly lightweight, with dramatically smaller file sizes than native apps.
 
 Due to all of these design constraints, some interesting use cases become possible.
 
