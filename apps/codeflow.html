@@ -1,0 +1,1410 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Code Editor</title>
+
+<!-- CodeMirror Core -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.css">
+
+<!-- CodeMirror Themes -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/material-darker.min.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/theme/eclipse.min.css">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ─── CSS Variables ─── */
+  :root {
+    --bg:         #0f1117;
+    --bg2:        #181c27;
+    --bg3:        #1e2333;
+    --border:     #2a3050;
+    --accent:     #5b8eff;
+    --accent2:    #a78bfa;
+    --text:       #e2e8f8;
+    --text-dim:   #6b7a9e;
+    --text-mid:   #9aa3bf;
+    --tab-active: #1e2333;
+    --tab-hover:  #1a1f2e;
+    --status-bg:  #0a0d17;
+    --btn-hover:  #252d45;
+    --danger:     #f87171;
+    --success:    #34d399;
+    --warn:       #fbbf24;
+    --shadow:     0 4px 24px rgba(0,0,0,0.5);
+    --radius:     6px;
+    --font-ui:    'Outfit', sans-serif;
+    --font-mono:  'JetBrains Mono', monospace;
+    --transition: 0.18s ease;
+  }
+  .light {
+    --bg:         #f0f2f7;
+    --bg2:        #ffffff;
+    --bg3:        #e8ecf4;
+    --border:     #c8d0e8;
+    --accent:     #3b6ef0;
+    --accent2:    #7c3aed;
+    --text:       #1a1f35;
+    --text-dim:   #8090b8;
+    --text-mid:   #5060a0;
+    --tab-active: #ffffff;
+    --tab-hover:  #eaeef8;
+    --status-bg:  #dde2f0;
+    --btn-hover:  #dce2f5;
+    --danger:     #dc2626;
+    --success:    #059669;
+    --warn:       #d97706;
+    --shadow:     0 4px 24px rgba(0,0,0,0.12);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    height: 100%;
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-ui);
+    font-size: 13px;
+    line-height: 1.5;
+    overflow: hidden;
+    transition: background var(--transition), color var(--transition);
+  }
+
+  /* ─── Layout ─── */
+  #app {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+  }
+
+  /* ─── Title Bar ─── */
+  #titlebar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 12px;
+    height: 42px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    user-select: none;
+  }
+  #titlebar-left {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .logo {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-weight: 700;
+    font-size: 14px;
+    letter-spacing: 0.04em;
+    color: var(--text);
+  }
+  .logo-icon {
+    width: 22px;
+    height: 22px;
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    font-weight: 800;
+    color: white;
+    letter-spacing: -1px;
+    flex-shrink: 0;
+  }
+  #titlebar-right {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  /* ─── Toolbar ─── */
+  #toolbar {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 10px;
+    background: var(--bg2);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
+  .toolbar-group {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+  }
+  .toolbar-sep {
+    width: 1px;
+    height: 20px;
+    background: var(--border);
+    margin: 0 6px;
+  }
+  .btn {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    padding: 5px 10px;
+    border: none;
+    border-radius: var(--radius);
+    background: transparent;
+    color: var(--text-mid);
+    font-family: var(--font-ui);
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background var(--transition), color var(--transition);
+    white-space: nowrap;
+  }
+  .btn:hover {
+    background: var(--btn-hover);
+    color: var(--text);
+  }
+  .btn.primary {
+    background: linear-gradient(135deg, var(--accent), var(--accent2));
+    color: white;
+  }
+  .btn.primary:hover {
+    opacity: 0.88;
+  }
+  .btn svg { flex-shrink: 0; }
+  .btn-icon {
+    padding: 5px;
+    border-radius: var(--radius);
+    border: none;
+    background: transparent;
+    color: var(--text-mid);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background var(--transition), color var(--transition);
+  }
+  .btn-icon:hover {
+    background: var(--btn-hover);
+    color: var(--text);
+  }
+
+  /* ─── Tabs ─── */
+  #tabs-container {
+    display: flex;
+    align-items: flex-end;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    overflow-x: auto;
+    flex-shrink: 0;
+    scrollbar-width: none;
+  }
+  #tabs-container::-webkit-scrollbar { display: none; }
+  #tabs {
+    display: flex;
+    align-items: flex-end;
+    gap: 0;
+    padding: 0 8px;
+    padding-top: 6px;
+  }
+  .tab {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 6px 14px 6px 14px;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    border-radius: 6px 6px 0 0;
+    cursor: pointer;
+    font-family: var(--font-ui);
+    font-size: 12px;
+    color: var(--text-dim);
+    transition: all var(--transition);
+    white-space: nowrap;
+    margin-right: 2px;
+    max-width: 200px;
+    position: relative;
+    top: 1px;
+  }
+  .tab:hover { background: var(--tab-hover); color: var(--text-mid); }
+  .tab.active {
+    background: var(--tab-active);
+    color: var(--text);
+    border-color: var(--border);
+  }
+  .tab .tab-ext {
+    font-size: 10px;
+    color: var(--accent);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tab .tab-name {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 120px;
+  }
+  .tab .tab-dot {
+    width: 7px; height: 7px;
+    border-radius: 50%;
+    background: var(--warn);
+    flex-shrink: 0;
+    display: none;
+  }
+  .tab.modified .tab-dot { display: block; }
+  .tab .tab-close {
+    width: 16px; height: 16px;
+    border-radius: 3px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--text-dim);
+    flex-shrink: 0;
+    transition: background var(--transition), color var(--transition);
+    font-size: 14px;
+    line-height: 1;
+  }
+  .tab .tab-close:hover {
+    background: rgba(248,113,113,0.2);
+    color: var(--danger);
+  }
+  #new-tab-btn {
+    margin-left: 2px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1.5px dashed var(--border);
+    color: var(--text-dim);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    transition: all var(--transition);
+    align-self: center;
+    margin-bottom: 5px;
+  }
+  #new-tab-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+    background: rgba(91,142,255,0.08);
+  }
+
+  /* ─── Main area ─── */
+  #main {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+    position: relative;
+  }
+
+  /* ─── Editor Wrapper ─── */
+  #editor-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    background: var(--bg2);
+  }
+
+  /* ─── CodeMirror overrides ─── */
+  .CodeMirror {
+    height: 100%;
+    font-family: var(--font-mono) !important;
+    font-size: 13.5px !important;
+    line-height: 1.65 !important;
+    background: transparent !important;
+  }
+  .CodeMirror-scroll {
+    padding-bottom: 20px;
+  }
+  /* Dark theme overrides */
+  body:not(.light) .CodeMirror {
+    color: #b8c4e0 !important;
+  }
+  body:not(.light) .CodeMirror-gutters {
+    background: #0f1117 !important;
+    border-right: 1px solid #1e2333 !important;
+  }
+  body:not(.light) .CodeMirror-linenumber {
+    color: #3a4570 !important;
+  }
+  body:not(.light) .CodeMirror-cursor { border-left: 2px solid #5b8eff !important; }
+  body:not(.light) .CodeMirror-selected { background: rgba(91,142,255,0.18) !important; }
+  body:not(.light) .CodeMirror-focused .CodeMirror-selected { background: rgba(91,142,255,0.22) !important; }
+  /* Light theme overrides */
+  body.light .CodeMirror {
+    color: #1a1f35 !important;
+  }
+  body.light .CodeMirror-gutters {
+    background: #e8ecf4 !important;
+    border-right: 1px solid #c8d0e8 !important;
+  }
+  body.light .CodeMirror-linenumber {
+    color: #a0aac8 !important;
+  }
+  body.light .CodeMirror-cursor { border-left: 2px solid #3b6ef0 !important; }
+  body.light .CodeMirror-selected { background: rgba(59,110,240,0.15) !important; }
+  body.light .CodeMirror-focused .CodeMirror-selected { background: rgba(59,110,240,0.2) !important; }
+
+  /* Active line highlight */
+  body:not(.light) .CodeMirror-activeline-background { background: rgba(30,35,51,0.8) !important; }
+  body.light .CodeMirror-activeline-background { background: rgba(200,210,232,0.4) !important; }
+
+  #editor-cm-wrapper {
+    flex: 1;
+    overflow: hidden;
+    position: relative;
+  }
+  #editor-cm-wrapper .CodeMirror-wrap {
+    height: 100%;
+  }
+
+  /* ─── Empty State ─── */
+  #empty-state {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    color: var(--text-dim);
+    pointer-events: none;
+  }
+  #empty-state.hidden { display: none; }
+  .empty-icon {
+    width: 60px; height: 60px;
+    border: 2px dashed var(--border);
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    opacity: 0.5;
+  }
+  .empty-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--text-mid);
+    opacity: 0.6;
+  }
+  .empty-hint {
+    font-size: 12px;
+    opacity: 0.5;
+    text-align: center;
+  }
+  .empty-shortcuts {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    opacity: 0.5;
+    pointer-events: all;
+  }
+  .shortcut-row {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 12px;
+  }
+  kbd {
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: 4px;
+    padding: 2px 7px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    color: var(--text-mid);
+  }
+
+  /* ─── Status Bar ─── */
+  #statusbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 14px;
+    height: 26px;
+    background: linear-gradient(135deg, var(--accent) 0%, var(--accent2) 100%);
+    color: rgba(255,255,255,0.9);
+    font-size: 11px;
+    font-weight: 500;
+    flex-shrink: 0;
+    letter-spacing: 0.02em;
+    user-select: none;
+  }
+  #statusbar .status-left, #statusbar .status-right {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .status-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    opacity: 0.85;
+  }
+  #save-indicator {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: #34d399;
+    display: inline-block;
+    transition: background 0.3s;
+  }
+  #save-indicator.unsaved { background: #fbbf24; }
+
+  /* ─── Modal ─── */
+  #modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(4px);
+    z-index: 1000;
+    align-items: center;
+    justify-content: center;
+  }
+  #modal-overlay.show { display: flex; }
+  #modal {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 28px;
+    min-width: 360px;
+    box-shadow: var(--shadow);
+    animation: modalIn 0.2s ease;
+  }
+  @keyframes modalIn {
+    from { transform: scale(0.92) translateY(10px); opacity: 0; }
+    to   { transform: scale(1) translateY(0); opacity: 1; }
+  }
+  #modal h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text);
+    margin-bottom: 18px;
+  }
+  #modal label {
+    display: block;
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-mid);
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+  #modal input, #modal select {
+    width: 100%;
+    background: var(--bg3);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 9px 12px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 13px;
+    outline: none;
+    margin-bottom: 16px;
+    transition: border-color var(--transition);
+  }
+  #modal input:focus, #modal select:focus {
+    border-color: var(--accent);
+  }
+  #modal select option {
+    background: var(--bg2);
+  }
+  .modal-actions {
+    display: flex;
+    gap: 8px;
+    justify-content: flex-end;
+    margin-top: 4px;
+  }
+  .modal-actions .btn {
+    padding: 8px 18px;
+    font-size: 13px;
+  }
+  .modal-actions .btn-cancel {
+    border: 1px solid var(--border);
+  }
+  .modal-actions .btn-cancel:hover {
+    background: var(--btn-hover);
+  }
+
+  /* ─── Find/Replace Bar ─── */
+  #find-bar {
+    display: none;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+    background: var(--bg3);
+    border-bottom: 1px solid var(--border);
+    flex-shrink: 0;
+  }
+  #find-bar.show { display: flex; }
+  #find-bar input {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 5px 10px;
+    color: var(--text);
+    font-family: var(--font-mono);
+    font-size: 12px;
+    outline: none;
+    width: 200px;
+  }
+  #find-bar input:focus { border-color: var(--accent); }
+  #find-bar .find-label {
+    font-size: 12px;
+    color: var(--text-dim);
+    font-weight: 500;
+  }
+  #find-match-count {
+    font-size: 11px;
+    color: var(--text-dim);
+    min-width: 60px;
+  }
+
+  /* ─── Notifications ─── */
+  #notifications {
+    position: fixed;
+    bottom: 36px;
+    right: 18px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: none;
+  }
+  .notif {
+    background: var(--bg2);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius);
+    padding: 10px 16px;
+    font-size: 12px;
+    color: var(--text);
+    box-shadow: var(--shadow);
+    animation: notifIn 0.2s ease forwards;
+    max-width: 280px;
+  }
+  .notif.success { border-left-color: var(--success); }
+  .notif.error { border-left-color: var(--danger); }
+  @keyframes notifIn {
+    from { transform: translateX(20px); opacity: 0; }
+    to   { transform: translateX(0); opacity: 1; }
+  }
+
+  /* Scrollbar */
+  ::-webkit-scrollbar { width: 8px; height: 8px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-dim); }
+</style>
+</head>
+<body>
+
+<!-- Hidden file input -->
+<input type="file" id="file-input" style="display:none" accept="*/*" multiple>
+
+<div id="app">
+
+  <!-- Title Bar -->
+  <div id="titlebar">
+    <div id="titlebar-left">
+      <div class="logo">
+        <div class="logo-icon">&lt;/&gt;</div>
+        CodeFlow
+      </div>
+    </div>
+    <div id="titlebar-right">
+      <button class="btn-icon" id="theme-toggle" title="Toggle dark/light mode">
+        <svg id="theme-icon-dark" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/>
+          <line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/>
+        </svg>
+        <svg id="theme-icon-light" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" style="display:none">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <!-- Toolbar -->
+  <div id="toolbar">
+    <div class="toolbar-group">
+      <button class="btn" id="btn-new" title="New File (Ctrl+N)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+          <polyline points="14 2 14 8 20 8"/>
+          <line x1="12" y1="18" x2="12" y2="12"/><line x1="9" y1="15" x2="15" y2="15"/>
+        </svg>
+        New
+      </button>
+      <button class="btn" id="btn-open" title="Open File (Ctrl+O)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+        </svg>
+        Open
+      </button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="btn primary" id="btn-save" title="Save File (Ctrl+S)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+        </svg>
+        Save
+      </button>
+      <button class="btn" id="btn-saveas" title="Save As (Ctrl+Shift+S)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/>
+          <polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/>
+          <line x1="20" y1="14" x2="16" y2="14"/>
+        </svg>
+        Save As
+      </button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="btn" id="btn-undo" title="Undo (Ctrl+Z)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-5"/>
+        </svg>
+        Undo
+      </button>
+      <button class="btn" id="btn-redo" title="Redo (Ctrl+Y)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.49-5"/>
+        </svg>
+        Redo
+      </button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="btn" id="btn-find" title="Find (Ctrl+F)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+        </svg>
+        Find
+      </button>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <select id="lang-select" style="background: var(--bg3); border: 1px solid var(--border); border-radius: var(--radius); padding: 5px 8px; color: var(--text-mid); font-family: var(--font-ui); font-size: 12px; outline: none; cursor: pointer;">
+        <option value="text">Plain Text</option>
+        <option value="javascript">JavaScript</option>
+        <option value="htmlmixed">HTML</option>
+        <option value="xml">XML</option>
+        <option value="css">CSS</option>
+        <option value="perl">Perl</option>
+        <option value="python">Python</option>
+        <option value="shell">Shell</option>
+        <option value="sql">SQL</option>
+        <option value="markdown">Markdown</option>
+        <option value="json">JSON</option>
+        <option value="php">PHP</option>
+        <option value="ruby">Ruby</option>
+        <option value="c_cpp">C / C++</option>
+        <option value="clike">Java / C#</option>
+        <option value="yaml">YAML</option>
+      </select>
+    </div>
+    <div class="toolbar-sep"></div>
+    <div class="toolbar-group">
+      <button class="btn" id="btn-close-tab" title="Close current tab (Ctrl+W)">
+        <svg width="13" height="13" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+          <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+        </svg>
+        Close Tab
+      </button>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div id="tabs-container">
+    <div id="tabs"></div>
+    <button id="new-tab-btn" title="New Tab">+</button>
+  </div>
+
+  <!-- Find Bar -->
+  <div id="find-bar">
+    <span class="find-label">Find:</span>
+    <input type="text" id="find-input" placeholder="Search...">
+    <button class="btn" id="find-prev">▲ Prev</button>
+    <button class="btn" id="find-next">▼ Next</button>
+    <span id="find-match-count"></span>
+    <div style="flex:1"></div>
+    <button class="btn" id="find-close">✕</button>
+  </div>
+
+  <!-- Main -->
+  <div id="main">
+    <div id="editor-wrapper">
+      <div id="editor-cm-wrapper">
+        <div id="empty-state">
+          <div class="empty-icon">
+            <svg width="28" height="28" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+              <polyline points="14 2 14 8 20 8"/>
+            </svg>
+          </div>
+          <div class="empty-title">No file open</div>
+          <div class="empty-hint">Open a file or create a new one to get started</div>
+          <div class="empty-shortcuts">
+            <div class="shortcut-row"><kbd>Ctrl+N</kbd> New file</div>
+            <div class="shortcut-row"><kbd>Ctrl+O</kbd> Open file</div>
+            <div class="shortcut-row"><kbd>Ctrl+S</kbd> Save file</div>
+            <div class="shortcut-row"><kbd>Ctrl+F</kbd> Find in file</div>
+            <div class="shortcut-row"><kbd>Ctrl+W</kbd> Close tab</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Bar -->
+  <div id="statusbar">
+    <div class="status-left">
+      <span class="status-item"><span id="save-indicator"></span> <span id="status-file">No file</span></span>
+      <span class="status-item" id="status-lang">Text</span>
+    </div>
+    <div class="status-right">
+      <span class="status-item" id="status-cursor">Ln 1, Col 1</span>
+      <span class="status-item" id="status-lines">0 lines</span>
+      <span class="status-item" id="status-chars">0 chars</span>
+      <span class="status-item">UTF-8</span>
+    </div>
+  </div>
+
+</div>
+
+<!-- New File Modal -->
+<div id="modal-overlay">
+  <div id="modal">
+    <h2>Create New File</h2>
+    <label>File Name</label>
+    <input type="text" id="new-file-name" placeholder="untitled.js">
+    <label>Language</label>
+    <select id="new-file-lang">
+      <option value="text">Plain Text (.txt)</option>
+      <option value="javascript">JavaScript (.js)</option>
+      <option value="htmlmixed">HTML (.html)</option>
+      <option value="xml">XML (.xml)</option>
+      <option value="css">CSS (.css)</option>
+      <option value="perl">Perl (.pl)</option>
+      <option value="python">Python (.py)</option>
+      <option value="shell">Shell (.sh)</option>
+      <option value="sql">SQL (.sql)</option>
+      <option value="markdown">Markdown (.md)</option>
+      <option value="json">JSON (.json)</option>
+      <option value="php">PHP (.php)</option>
+      <option value="ruby">Ruby (.rb)</option>
+      <option value="c_cpp">C/C++ (.c/.cpp)</option>
+      <option value="clike">Java (.java)</option>
+      <option value="yaml">YAML (.yml)</option>
+    </select>
+    <div class="modal-actions">
+      <button class="btn btn-cancel" id="modal-cancel">Cancel</button>
+      <button class="btn primary" id="modal-create">Create</button>
+    </div>
+  </div>
+</div>
+
+<!-- Notifications -->
+<div id="notifications"></div>
+
+<!-- CodeMirror JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/codemirror.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/matchbrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/edit/closebrackets.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/selection/active-line.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/search/searchcursor.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldcode.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/addon/fold/foldgutter.min.js"></script>
+<!-- Modes -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/javascript/javascript.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/xml/xml.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/htmlmixed/htmlmixed.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/css/css.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/perl/perl.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/python/python.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/shell/shell.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/sql/sql.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/markdown/markdown.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/php/php.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/ruby/ruby.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/clike/clike.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/codemirror/5.65.16/mode/yaml/yaml.min.js"></script>
+
+<script>
+/* ═══════════════════════════════════════════════════════
+   STATE
+═══════════════════════════════════════════════════════ */
+let tabs = [];
+let activeTabId = null;
+let tabCounter = 0;
+let isDark = true;
+let editor = null;
+let suppressChange = false;
+
+/* Extension → mode map */
+const extMode = {
+  js: 'javascript', mjs: 'javascript', cjs: 'javascript', ts: 'javascript',
+  html: 'htmlmixed', htm: 'htmlmixed',
+  xml: 'xml', svg: 'xml', xsl: 'xml',
+  css: 'css', scss: 'css', less: 'css',
+  pl: 'perl', pm: 'perl',
+  py: 'python', pyw: 'python',
+  sh: 'shell', bash: 'shell', zsh: 'shell',
+  sql: 'sql',
+  md: 'markdown', markdown: 'markdown',
+  json: 'javascript',
+  php: 'php',
+  rb: 'ruby',
+  c: 'clike', cpp: 'clike', h: 'clike', java: 'clike', cs: 'clike',
+  yml: 'yaml', yaml: 'yaml',
+  txt: 'text',
+};
+
+const modeName = {
+  javascript: 'JavaScript', htmlmixed: 'HTML', xml: 'XML', css: 'CSS',
+  perl: 'Perl', python: 'Python', shell: 'Shell', sql: 'SQL',
+  markdown: 'Markdown', json: 'JSON', php: 'PHP', ruby: 'Ruby',
+  clike: 'C/C++/Java', yaml: 'YAML', text: 'Text',
+};
+
+/* ═══════════════════════════════════════════════════════
+   CODEMIRROR INIT
+═══════════════════════════════════════════════════════ */
+function initEditor() {
+  const wrapper = document.getElementById('editor-cm-wrapper');
+  editor = CodeMirror(wrapper, {
+    value: '',
+    mode: 'text',
+    theme: 'material-darker',
+    lineNumbers: true,
+    lineWrapping: true,
+    autofocus: true,
+    indentUnit: 2,
+    tabSize: 2,
+    indentWithTabs: false,
+    matchBrackets: true,
+    autoCloseBrackets: true,
+    styleActiveLine: true,
+    extraKeys: {
+      'Tab': (cm) => {
+        if (cm.somethingSelected()) cm.indentSelection('add');
+        else cm.replaceSelection('  ', 'end');
+      },
+      'Ctrl-S': () => saveFile(),
+      'Cmd-S': () => saveFile(),
+      'Ctrl-Shift-S': () => saveAs(),
+      'Cmd-Shift-S': () => saveAs(),
+      'Ctrl-N': () => showNewModal(),
+      'Cmd-N': () => showNewModal(),
+      'Ctrl-O': () => document.getElementById('file-input').click(),
+      'Cmd-O': () => document.getElementById('file-input').click(),
+      'Ctrl-W': () => closeActiveTab(),
+      'Cmd-W': () => closeActiveTab(),
+      'Ctrl-F': (cm) => { toggleFind(); return false; },
+      'Cmd-F': (cm) => { toggleFind(); return false; },
+    }
+  });
+
+  editor.on('change', () => {
+    if (suppressChange) return;
+    const tab = getActiveTab();
+    if (!tab) return;
+    tab.content = editor.getValue();
+    tab.modified = true;
+    renderTabs();
+    updateStatus();
+    updateSaveIndicator(true);
+  });
+
+  editor.on('cursorActivity', updateStatus);
+}
+
+/* ═══════════════════════════════════════════════════════
+   TAB MANAGEMENT
+═══════════════════════════════════════════════════════ */
+function getActiveTab() {
+  return tabs.find(t => t.id === activeTabId) || null;
+}
+
+function createTab(name, content = '', mode = 'text', fileHandle = null) {
+  const id = ++tabCounter;
+  const tab = { id, name, content, mode, modified: false, fileHandle };
+  tabs.push(tab);
+  switchTab(id);
+  renderTabs();
+  return tab;
+}
+
+function switchTab(id) {
+  // Save current tab content
+  if (activeTabId && editor) {
+    const cur = tabs.find(t => t.id === activeTabId);
+    if (cur) cur.content = editor.getValue();
+  }
+
+  activeTabId = id;
+  const tab = getActiveTab();
+  if (!tab) { showEmpty(true); return; }
+  showEmpty(false);
+
+  suppressChange = true;
+  editor.setValue(tab.content);
+  setEditorMode(tab.mode);
+  suppressChange = false;
+
+  editor.clearHistory();
+  editor.focus();
+  updateStatus();
+  updateSaveIndicator(tab.modified);
+  renderTabs();
+
+  // Sync lang select
+  document.getElementById('lang-select').value = tab.mode;
+}
+
+function closeTab(id) {
+  const tab = tabs.find(t => t.id === id);
+  if (!tab) return;
+  if (tab.modified) {
+    if (!confirm(`"${tab.name}" has unsaved changes. Close anyway?`)) return;
+  }
+  const idx = tabs.indexOf(tab);
+  tabs.splice(idx, 1);
+  if (activeTabId === id) {
+    if (tabs.length) {
+      switchTab(tabs[Math.min(idx, tabs.length - 1)].id);
+    } else {
+      activeTabId = null;
+      editor.setValue('');
+      showEmpty(true);
+    }
+  }
+  renderTabs();
+}
+
+function renderTabs() {
+  const container = document.getElementById('tabs');
+  container.innerHTML = '';
+  tabs.forEach(tab => {
+    const ext = tab.name.split('.').pop().toLowerCase();
+    const el = document.createElement('div');
+    el.className = 'tab' + (tab.id === activeTabId ? ' active' : '') + (tab.modified ? ' modified' : '');
+    el.innerHTML = `
+      <span class="tab-ext">${ext}</span>
+      <span class="tab-name" title="${tab.name}">${tab.name}</span>
+      <span class="tab-dot"></span>
+      <span class="tab-close" data-id="${tab.id}" title="Close">✕</span>
+    `;
+    el.addEventListener('click', (e) => {
+      if (!e.target.classList.contains('tab-close')) switchTab(tab.id);
+    });
+    el.querySelector('.tab-close').addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeTab(tab.id);
+    });
+    container.appendChild(el);
+  });
+}
+
+function closeActiveTab() {
+  if (activeTabId) closeTab(activeTabId);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EDITOR UTILS
+═══════════════════════════════════════════════════════ */
+function setEditorMode(mode) {
+  const modeMap = {
+    javascript: { name: 'javascript', json: false },
+    json: { name: 'javascript', json: true },
+    htmlmixed: 'htmlmixed',
+    xml: 'xml',
+    css: 'css',
+    perl: 'perl',
+    python: 'python',
+    shell: 'shell',
+    sql: 'sql',
+    markdown: 'markdown',
+    php: 'php',
+    ruby: 'ruby',
+    clike: 'text/x-java',
+    c_cpp: 'text/x-c++src',
+    yaml: 'yaml',
+    text: null,
+  };
+  editor.setOption('mode', modeMap[mode] || null);
+}
+
+function showEmpty(show) {
+  document.getElementById('empty-state').classList.toggle('hidden', !show);
+}
+
+function updateSaveIndicator(unsaved) {
+  document.getElementById('save-indicator').className = unsaved ? 'unsaved' : '';
+}
+
+function updateStatus() {
+  const tab = getActiveTab();
+  if (!tab) {
+    document.getElementById('status-file').textContent = 'No file';
+    document.getElementById('status-lang').textContent = 'Text';
+    document.getElementById('status-lines').textContent = '0 lines';
+    document.getElementById('status-chars').textContent = '0 chars';
+    document.getElementById('status-cursor').textContent = 'Ln 1, Col 1';
+    return;
+  }
+  const cur = editor.getCursor();
+  const content = editor.getValue();
+  document.getElementById('status-file').textContent = tab.name;
+  document.getElementById('status-lang').textContent = modeName[tab.mode] || 'Text';
+  document.getElementById('status-lines').textContent = editor.lineCount() + ' lines';
+  document.getElementById('status-chars').textContent = content.length + ' chars';
+  document.getElementById('status-cursor').textContent = `Ln ${cur.line + 1}, Col ${cur.ch + 1}`;
+}
+
+function getModeFromFilename(name) {
+  const ext = name.split('.').pop().toLowerCase();
+  return extMode[ext] || 'text';
+}
+
+/* ═══════════════════════════════════════════════════════
+   FILE OPERATIONS
+═══════════════════════════════════════════════════════ */
+function showNewModal() {
+  document.getElementById('new-file-name').value = '';
+  document.getElementById('modal-overlay').classList.add('show');
+  setTimeout(() => document.getElementById('new-file-name').focus(), 100);
+}
+
+function hideModal() {
+  document.getElementById('modal-overlay').classList.remove('show');
+}
+
+function createNewFile(name, mode) {
+  if (!name) name = 'untitled.txt';
+  createTab(name, '', mode || getModeFromFilename(name));
+  hideModal();
+  notify(`Created "${name}"`, 'success');
+}
+
+function openFiles(files) {
+  Array.from(files).forEach(file => {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const mode = getModeFromFilename(file.name);
+      // Check if tab with same name exists
+      const existing = tabs.find(t => t.name === file.name);
+      if (existing) {
+        if (!confirm(`"${file.name}" is already open. Replace its content?`)) return;
+        suppressChange = true;
+        existing.content = e.target.result;
+        existing.modified = false;
+        if (activeTabId === existing.id) {
+          editor.setValue(e.target.result);
+          editor.clearHistory();
+        }
+        suppressChange = false;
+        switchTab(existing.id);
+        notify(`Reloaded "${file.name}"`, 'success');
+        return;
+      }
+      createTab(file.name, e.target.result, mode);
+      notify(`Opened "${file.name}"`, 'success');
+    };
+    reader.readAsText(file);
+  });
+}
+
+async function saveFile() {
+  const tab = getActiveTab();
+  if (!tab) { notify('No file open', 'error'); return; }
+
+  // Try to use File System Access API (Chrome/Edge)
+  if (tab.fileHandle) {
+    try {
+      const writable = await tab.fileHandle.createWritable();
+      await writable.write(tab.content);
+      await writable.close();
+      tab.modified = false;
+      renderTabs();
+      updateSaveIndicator(false);
+      notify(`Saved "${tab.name}"`, 'success');
+      return;
+    } catch (e) { /* fall through */ }
+  }
+
+  // Try showSaveFilePicker
+  if (window.showSaveFilePicker) {
+    try {
+      const ext = tab.name.split('.').pop().toLowerCase();
+      const types = getFilePickerTypes(ext);
+      const handle = await window.showSaveFilePicker({
+        suggestedName: tab.name,
+        types,
+      });
+      tab.fileHandle = handle;
+      tab.name = handle.name;
+      const writable = await handle.createWritable();
+      await writable.write(tab.content);
+      await writable.close();
+      tab.modified = false;
+      renderTabs();
+      updateSaveIndicator(false);
+      notify(`Saved "${tab.name}"`, 'success');
+      return;
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error(e);
+      return;
+    }
+  }
+
+  // Fallback: download
+  downloadFile(tab.name, tab.content);
+  tab.modified = false;
+  renderTabs();
+  updateSaveIndicator(false);
+  notify(`Downloaded "${tab.name}"`, 'success');
+}
+
+async function saveAs() {
+  const tab = getActiveTab();
+  if (!tab) return;
+
+  if (window.showSaveFilePicker) {
+    try {
+      const handle = await window.showSaveFilePicker({ suggestedName: tab.name });
+      tab.fileHandle = handle;
+      tab.name = handle.name;
+      const writable = await handle.createWritable();
+      await writable.write(tab.content);
+      await writable.close();
+      tab.modified = false;
+      tab.mode = getModeFromFilename(tab.name);
+      setEditorMode(tab.mode);
+      renderTabs();
+      updateStatus();
+      updateSaveIndicator(false);
+      notify(`Saved as "${tab.name}"`, 'success');
+      return;
+    } catch (e) {
+      if (e.name !== 'AbortError') console.error(e);
+      return;
+    }
+  }
+  downloadFile(tab.name, tab.content);
+  tab.modified = false;
+  renderTabs();
+  updateSaveIndicator(false);
+}
+
+function downloadFile(name, content) {
+  const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = name;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function getFilePickerTypes(ext) {
+  const map = {
+    js: [{ description: 'JavaScript', accept: {'text/javascript': ['.js']} }],
+    ts: [{ description: 'TypeScript', accept: {'text/typescript': ['.ts']} }],
+    html: [{ description: 'HTML', accept: {'text/html': ['.html', '.htm']} }],
+    xml: [{ description: 'XML', accept: {'text/xml': ['.xml']} }],
+    css: [{ description: 'CSS', accept: {'text/css': ['.css']} }],
+    pl: [{ description: 'Perl', accept: {'text/plain': ['.pl', '.pm']} }],
+    py: [{ description: 'Python', accept: {'text/x-python': ['.py']} }],
+    txt: [{ description: 'Text', accept: {'text/plain': ['.txt']} }],
+    json: [{ description: 'JSON', accept: {'application/json': ['.json']} }],
+    md: [{ description: 'Markdown', accept: {'text/markdown': ['.md']} }],
+  };
+  return map[ext] || [{ description: 'All Files', accept: {'text/plain': ['.*']} }];
+}
+
+/* ═══════════════════════════════════════════════════════
+   FIND
+═══════════════════════════════════════════════════════ */
+let findCursor = null;
+let lastQuery = '';
+
+function toggleFind() {
+  const bar = document.getElementById('find-bar');
+  if (bar.classList.contains('show')) {
+    bar.classList.remove('show');
+    editor.focus();
+  } else {
+    bar.classList.add('show');
+    document.getElementById('find-input').focus();
+    document.getElementById('find-input').select();
+  }
+}
+
+function doFind(direction) {
+  const query = document.getElementById('find-input').value;
+  if (!query) return;
+  const cur = editor.getSearchCursor(query, direction === 'next' ? editor.getCursor('to') : editor.getCursor('from'));
+  const found = direction === 'next' ? cur.findNext() : cur.findPrevious();
+  if (!found) {
+    const restart = editor.getSearchCursor(query, direction === 'next' ? {line: 0, ch: 0} : {line: editor.lineCount()-1, ch: 0});
+    if (direction === 'next' ? restart.findNext() : restart.findPrevious()) {
+      editor.setSelection(restart.from(), restart.to());
+      editor.scrollIntoView({from: restart.from(), to: restart.to()}, 100);
+    }
+  } else {
+    editor.setSelection(cur.from(), cur.to());
+    editor.scrollIntoView({from: cur.from(), to: cur.to()}, 100);
+  }
+  // Count matches
+  const allCursor = editor.getSearchCursor(query, {line: 0, ch: 0});
+  let count = 0;
+  while (allCursor.findNext()) count++;
+  document.getElementById('find-match-count').textContent = count ? `${count} found` : 'No matches';
+}
+
+/* ═══════════════════════════════════════════════════════
+   THEME
+═══════════════════════════════════════════════════════ */
+function setTheme(dark) {
+  isDark = dark;
+  document.body.classList.toggle('light', !dark);
+  if (editor) editor.setOption('theme', dark ? 'material-darker' : 'eclipse');
+  document.getElementById('theme-icon-dark').style.display = dark ? 'block' : 'none';
+  document.getElementById('theme-icon-light').style.display = dark ? 'none' : 'block';
+  localStorage.setItem('codeflow-theme', dark ? 'dark' : 'light');
+}
+
+/* ═══════════════════════════════════════════════════════
+   NOTIFICATIONS
+═══════════════════════════════════════════════════════ */
+function notify(msg, type = '') {
+  const el = document.createElement('div');
+  el.className = 'notif ' + type;
+  el.textContent = msg;
+  document.getElementById('notifications').appendChild(el);
+  setTimeout(() => el.style.opacity = '0', 2200);
+  setTimeout(() => el.remove(), 2500);
+}
+
+/* ═══════════════════════════════════════════════════════
+   EVENT WIRING
+═══════════════════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  initEditor();
+
+  // Restore theme
+  const savedTheme = localStorage.getItem('codeflow-theme');
+  if (savedTheme === 'light') setTheme(false);
+
+  // Toolbar buttons
+  document.getElementById('btn-new').addEventListener('click', showNewModal);
+  document.getElementById('btn-open').addEventListener('click', () => document.getElementById('file-input').click());
+  document.getElementById('btn-save').addEventListener('click', saveFile);
+  document.getElementById('btn-saveas').addEventListener('click', saveAs);
+  document.getElementById('btn-undo').addEventListener('click', () => editor.undo());
+  document.getElementById('btn-redo').addEventListener('click', () => editor.redo());
+  document.getElementById('btn-find').addEventListener('click', toggleFind);
+  document.getElementById('btn-close-tab').addEventListener('click', closeActiveTab);
+  document.getElementById('new-tab-btn').addEventListener('click', showNewModal);
+  document.getElementById('theme-toggle').addEventListener('click', () => setTheme(!isDark));
+
+  // Language select
+  document.getElementById('lang-select').addEventListener('change', (e) => {
+    const tab = getActiveTab();
+    if (!tab) return;
+    tab.mode = e.target.value;
+    setEditorMode(e.target.value);
+    updateStatus();
+  });
+
+  // File input
+  document.getElementById('file-input').addEventListener('change', (e) => {
+    openFiles(e.target.files);
+    e.target.value = '';
+  });
+
+  // Drag and drop
+  document.addEventListener('dragover', (e) => e.preventDefault());
+  document.addEventListener('drop', (e) => {
+    e.preventDefault();
+    if (e.dataTransfer.files.length) openFiles(e.dataTransfer.files);
+  });
+
+  // Modal
+  document.getElementById('modal-cancel').addEventListener('click', hideModal);
+  document.getElementById('modal-overlay').addEventListener('click', (e) => {
+    if (e.target === document.getElementById('modal-overlay')) hideModal();
+  });
+  document.getElementById('modal-create').addEventListener('click', () => {
+    const name = document.getElementById('new-file-name').value.trim() || 'untitled.txt';
+    const mode = document.getElementById('new-file-lang').value;
+    createNewFile(name, mode);
+  });
+  document.getElementById('new-file-name').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') document.getElementById('modal-create').click();
+    if (e.key === 'Escape') hideModal();
+  });
+  // Auto-update lang select in modal when name changes
+  document.getElementById('new-file-name').addEventListener('input', (e) => {
+    const mode = getModeFromFilename(e.target.value || 'txt');
+    const sel = document.getElementById('new-file-lang');
+    if (sel.querySelector(`option[value="${mode}"]`)) sel.value = mode;
+  });
+
+  // Find bar
+  document.getElementById('find-next').addEventListener('click', () => doFind('next'));
+  document.getElementById('find-prev').addEventListener('click', () => doFind('prev'));
+  document.getElementById('find-close').addEventListener('click', () => {
+    document.getElementById('find-bar').classList.remove('show');
+    editor.focus();
+  });
+  document.getElementById('find-input').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') doFind(e.shiftKey ? 'prev' : 'next');
+    if (e.key === 'Escape') {
+      document.getElementById('find-bar').classList.remove('show');
+      editor.focus();
+    }
+  });
+
+  // Global keyboard shortcuts
+  document.addEventListener('keydown', (e) => {
+    const mod = e.ctrlKey || e.metaKey;
+    if (mod && e.key === 'n') { e.preventDefault(); showNewModal(); }
+    if (mod && e.key === 'o') { e.preventDefault(); document.getElementById('file-input').click(); }
+    if (mod && e.key === 's' && e.shiftKey) { e.preventDefault(); saveAs(); }
+    else if (mod && e.key === 's') { e.preventDefault(); saveFile(); }
+    if (mod && e.key === 'w') { e.preventDefault(); closeActiveTab(); }
+    if (mod && e.key === 'f') { e.preventDefault(); toggleFind(); }
+  });
+
+  // Tab cycling
+  document.addEventListener('keydown', (e) => {
+    if ((e.ctrlKey || e.metaKey) && e.key === 'Tab') {
+      e.preventDefault();
+      if (!tabs.length) return;
+      const idx = tabs.findIndex(t => t.id === activeTabId);
+      const next = e.shiftKey ? (idx - 1 + tabs.length) % tabs.length : (idx + 1) % tabs.length;
+      switchTab(tabs[next].id);
+    }
+  });
+
+  showEmpty(true);
+  updateStatus();
+});
+</script>
+</body>
+</html>
