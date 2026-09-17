@@ -4,7 +4,7 @@ A Decentralized, Local, Cross Platform Web App Store, built on apps.json.
 
 ### Why UnifiedFront?
 
-On many platforms, storage, performance, and/or local apps are restricted. This makes installing apps much more difficult. Take, for example, ChromeOS. By default, you cannot install any local apps. You can enable Android/Linux apps, but if your Chromebook is managed by an organization that disables these, your only option is the Chrome Web Store. This can work, but apps installed from here generally only function if you have internet, can be blocked by network filters, and can be taken away at any time because they really aren't even installed on your Chromebook at all. And even this can be disabled through organization management, leaving you with no dedicated app store to install apps from.
+On many platforms, storage, performance, and/or local apps are restricted. This makes installing apps much more difficult. Take, for example, ChromeOS. By default, you cannot install any local apps. You can enable Android/Linux apps, but if your Chromebook is managed by an organization that disables these, your only option is the Chrome Web Store. This can work, but apps installed from here generally only function if you have internet, can be blocked by network filters, and can be taken away at any time because they aren't installed in a way you can independently control. And even this can be disabled through organization management, leaving you with no dedicated app store to install apps from.
 
 ### How does UnifiedFront solve this problem?
 
