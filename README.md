@@ -33,3 +33,13 @@ Due to all of these design constraints, some interesting use cases become possib
 ### How did we achieve this?
 
 UnifiedFront uses Chromium's File System Access API to grant access to a folder, open things from within it, and manipulate entries in apps.json. This has the unfortunate consequence of making it incompatible with Firefox and WebKit, but implementations for those platforms would sacrifice on simplicity, portability, or ease of use. That does not mean implementations for any of these platforms are off the table in the future, but unless a similar API becomes available for Firefox or Webkit, I will not be building support into UnifiedFront for these platforms.
+
+### Credits
+
+- CoolDude2349's Offline-Games-Pack for the games I added to the store page (https://github.com/CoolDude2349/Offline-HTML-Games-Pack/tree/master)
+- Smadgulkar's Carrel (https://github.com/smadgulkar/carrel)
+- Mad-science-lab's CodeFlow (https://github.com/mad-science-lab/CodeFlow)
+- Marcosmorise's WideW (https://sourceforge.net/projects/widew)
+- Nocodework's offline-notes and offline-whiteboard (https://github.com/nocodework)
+- 0xedgelessblade's EdgeMD (https://github.com/0xedgelessblade/edge-md-viewer)
+- Nikolasdziretti's PowerHTML (https://github.com/nikolasdziretti-del/PowerHTML)
