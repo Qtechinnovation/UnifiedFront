@@ -9,6 +9,7 @@
       --bg: #121212;
       --surface: #1e1e1e;
       --primary: #bb86fc;
+      --danger: #cf6679;
       --text: #e0e0e0;
       --border: #333;
     }
@@ -41,6 +42,10 @@
       transition: opacity 0.2s;
     }
     button:hover { opacity: 0.9; }
+    .btn-danger {
+      background: var(--danger);
+      color: #000;
+    }
     header {
       padding: 16px 32px;
       background: var(--surface);
@@ -147,8 +152,9 @@
       <img id="detail-img" src="" style="width: 96px; height: 96px; border-radius: 12px; object-fit: cover;" />
       <h2 id="detail-title"></h2>
       <p id="detail-desc"></p>
-      <div class="dialog-actions" style="justify-content: center;">
+      <div class="dialog-actions" style="justify-content: center; flex-wrap: wrap;">
         <button id="btn-launch">Launch App</button>
+        <button id="btn-uninstall" class="btn-danger">Uninstall</button>
         <button id="btn-close-detail">Close</button>
       </div>
     </div>
@@ -190,7 +196,6 @@
     window.addEventListener('DOMContentLoaded', async () => {
       dirHandle = await getDirectoryHandle();
       if (dirHandle) {
-        // Query handle permission state
         const status = await dirHandle.queryPermission({ mode: 'readwrite' });
         if (status === 'granted') {
           await loadAppsDirectory();
@@ -212,7 +217,24 @@
     // --- Directory Selection & Loading ---
     document.getElementById('btn-select-dir').addEventListener('click', async () => {
       try {
-        dirHandle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        const handle = await window.showDirectoryPicker({ mode: 'readwrite' });
+        
+        let hasAppsJson = false;
+        try {
+          await handle.getFileHandle('apps.json', { create: false });
+          hasAppsJson = true;
+        } catch (e) {
+          hasAppsJson = false;
+        }
+
+        if (!hasAppsJson) {
+          const initConfirmed = confirm("Selected folder does not contain an 'apps.json' database. Would you like to initialize this folder for UnifiedFront?");
+          if (!initConfirmed) {
+            return; // Cancel setup if user rejects initialization
+          }
+        }
+
+        dirHandle = handle;
         await saveDirectoryHandle(dirHandle);
         await initOrReadAppsJson();
         showLauncherView();
@@ -296,14 +318,12 @@
       const desc = document.getElementById('input-desc').value;
       const iconInput = document.getElementById('input-icon').files[0];
 
-      // Convert image file to base64 Data URL for JSON storage
       const iconData = await new Promise((resolve) => {
         const reader = new FileReader();
         reader.onload = () => resolve(reader.result);
         reader.readAsDataURL(iconInput);
       });
 
-      // Save imported HTML file into target directory
       const originalFile = await pendingFileHandle.getFile();
       const filename = originalFile.name;
       const targetFileHandle = await dirHandle.getFileHandle(filename, { create: true });
@@ -311,7 +331,6 @@
       await writable.write(await originalFile.arrayBuffer());
       await writable.close();
 
-      // Append metadata to apps.json
       appsData.push({ title, description: desc, iconData, htmlFile: filename });
       await writeAppsJson();
 
@@ -320,7 +339,7 @@
       renderGrid();
     });
 
-    // --- Detail & Execution Flow ---
+    // --- Detail, Execution & Uninstall Flow ---
     function openDetailModal(app) {
       selectedApp = app;
       document.getElementById('detail-title').textContent = app.title;
@@ -334,29 +353,48 @@
     });
 
     document.getElementById('btn-launch').addEventListener('click', async () => {
-  if (!selectedApp) return;
-  try {
-    // 1. Get the HTML file handle and read its text content
-    const fileHandle = await dirHandle.getFileHandle(selectedApp.htmlFile);
-    const file = await fileHandle.getFile();
-    const htmlContent = await file.text();
+      if (!selectedApp) return;
+      try {
+        const fileHandle = await dirHandle.getFileHandle(selectedApp.htmlFile);
+        const file = await fileHandle.getFile();
+        const htmlContent = await file.text();
 
-    // 2. Open a new tab
-    const newWin = window.open('about:blank', '_blank');
+        const newWin = window.open('about:blank', '_blank');
 
-    if (newWin) {
-      // 3. Inject the HTML string into the new tab's document stream
-      newWin.document.open();
-      newWin.document.write(htmlContent);
-      newWin.document.close();
-    } else {
-      alert('Popup blocker blocked launching the app. Please allow popups for this site.');
-    }
-  } catch (err) {
-    console.error('Failed to launch application:', err);
-    alert('Could not read or launch the selected HTML file.');
-  }
-});
+        if (newWin) {
+          newWin.document.open();
+          newWin.document.write(htmlContent);
+          newWin.document.close();
+        } else {
+          alert('Popup blocker blocked launching the app. Please allow popups for this site.');
+        }
+      } catch (err) {
+        console.error('Failed to launch application:', err);
+        alert('Could not read or launch the selected HTML file.');
+      }
+    });
+
+    // --- Uninstall App Handler ---
+    document.getElementById('btn-uninstall').addEventListener('click', async () => {
+      if (!selectedApp) return;
+
+      const confirmed = confirm(`Are you sure you want to uninstall "${selectedApp.title}"? This will delete the HTML file from your directory.`);
+      if (!confirmed) return;
+
+      try {
+        // Delete the HTML file from local directory
+        await dirHandle.removeEntry(selectedApp.htmlFile);
+      } catch (err) {
+        console.warn('HTML file could not be removed or was already deleted:', err);
+      }
+
+      // Remove from appsData array and update apps.json
+      appsData = appsData.filter(app => app.htmlFile !== selectedApp.htmlFile);
+      await writeAppsJson();
+
+      document.getElementById('modal-app-detail').close();
+      renderGrid();
+    });
   </script>
 </body>
 </html>
