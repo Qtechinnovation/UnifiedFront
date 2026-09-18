@@ -4,7 +4,7 @@ A Decentralized, Local, Cross Platform Web App Store, built on apps.json.
 
 ### Why UnifiedFront?
 
-On many platforms, storage, performance, and/or local apps are restricted. This makes installing apps much more difficult. Take, for example, ChromeOS. By default, you cannot install any local apps. You can enable Android/Linux apps, but if your Chromebook is managed by an organization that disables these, your only option is the Chrome Web Store. This can work, but apps installed from here generally only function if you have internet, can be blocked by network filters, and can be taken away at any time because they really aren't even installed on your Chromebook at all. And even this can be disabled through organization management, leaving you with no dedicated app store to install apps from.
+On many platforms, storage, performance, and/or local apps are restricted. This makes installing apps much more difficult. Take, for example, ChromeOS. By default, you cannot install any local apps. You can enable Android/Linux apps, but if your Chromebook is managed by an organization that disables these, your only option is the Chrome Web Store. This can work, but apps installed from here generally only function if you have internet, can be blocked by network filters, and can be taken away at any time because they aren't installed in a way you can independently control. And even this can be disabled through organization management, leaving you with no dedicated app store to install apps from.
 
 ### How does UnifiedFront solve this problem?
 
@@ -12,7 +12,7 @@ UnifiedFront is built on a single, simple file, called apps.json. All you have t
 
 1.  Portability
 
-Because of CORS limitations, only single file HTML web apps are supported. This has the side effect of making it incredibly easy to swap launchers and simplifies the standard for apps.json significantly.
+Because of CORS limitations, only single file HTML web apps are supported currently supported, because multiple file app support is significantly more difficult to implement. This has the side effect of making it incredibly easy to swap launchers and simplifies the standard for apps.json significantly.
 
 2. Ease of use
 
@@ -20,7 +20,7 @@ Because the entire standard is a single folder and one file, all you have to do 
 
 3. File size
 
-Because these are all HTML files, they are incredibly lightweight, not much more than 30MB at most.
+Because these are all HTML files, they are incredibly lightweight, with dramatically smaller file sizes than native apps.
 
 Due to all of these design constraints, some interesting use cases become possible.
 
@@ -33,3 +33,13 @@ Due to all of these design constraints, some interesting use cases become possib
 ### How did we achieve this?
 
 UnifiedFront uses Chromium's File System Access API to grant access to a folder, open things from within it, and manipulate entries in apps.json. This has the unfortunate consequence of making it incompatible with Firefox and WebKit, but implementations for those platforms would sacrifice on simplicity, portability, or ease of use. That does not mean implementations for any of these platforms are off the table in the future, but unless a similar API becomes available for Firefox or Webkit, I will not be building support into UnifiedFront for these platforms.
+
+### Credits
+
+- CoolDude2349's Offline-Games-Pack for the games I added to the store page (https://github.com/CoolDude2349/Offline-HTML-Games-Pack/tree/master)
+- Smadgulkar's Carrel (https://github.com/smadgulkar/carrel)
+- Mad-science-lab's CodeFlow (https://github.com/mad-science-lab/CodeFlow)
+- Marcosmorise's WideW (https://sourceforge.net/projects/widew)
+- Nocodework's offline-notes and offline-whiteboard (https://github.com/nocodework)
+- 0xedgelessblade's EdgeMD (https://github.com/0xedgelessblade/edge-md-viewer)
+- Nikolasdziretti's PowerHTML (https://github.com/nikolasdziretti-del/PowerHTML)
