@@ -338,8 +338,8 @@
                 <p>
                    Any app. Any platform. One click install. 
                 </p>
-                <!-- Points directly to your local file path and forces a download when clicked -->
-                <a id="btn-download-launcher" class="btn-secondary" href="./UnifiedLauncher.html" download="UnifiedLauncher.html" style="text-decoration: none;">
+                <!-- Blob-backed safe link to bypass direct network file extension filters -->
+                <a id="btn-download-launcher" class="btn-secondary" href="#" style="text-decoration: none;">
                     Download UnifiedLauncher.html
                 </a>
                 <a href="https://qtechinnovation.github.io/UnifiedLauncherWebApp/" style="margin-top: 10px;">Or Install as a Web App</a>
@@ -424,7 +424,7 @@
                 title: 'FNAF 2',
                 type: 'Game',
                 description: 'The second entry in the FNAF franchise, now available offline.',
-                icon: 'https://imgs.search.brave.com/mor4VRZmqzEEfZGeyRXkZXm3QkzE-BQkfINn0ggE64M/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMtd2l4bXAtZWQz/MGE4NmI4YzRjYTg4/Nzc3MzU5NGMyLndp/eG1wLmNvbS9mLzM4/N2YwMjE3LWY1OTkt/NDRlMi05M2UzLTEy/NDg5NWQ2YThkYi9k/aDJyN24xLThmNzMx/OGI2LTgzOGYtNDU0/Ni04NWY1LTZlMWJi/MTEwMjVhYS5wbmc_/dG9rZW49ZXlKMGVY/QWlPaUpLVjFRaUxD/SmhiR2NpT2lKSVV6/STFOaUo5LmV5Snpk/V0lpT2lKMWNtNDZZ/WEJ3T2pkbE1HUXhP/RGc1T0RJeU5qUXpO/ek5oTldZd1pEUXhO/V1ZoTUdReU5tVXdJ/aXdpYVhOeklqb2lk/WEp1T21Gd2NEbzNa/VEJrTVRnNE9UZ3lN/alkwTXpjellUVm1N/R1EwTVRWbFlUQmtN/alpsTUNJc0ltOWlh/aUk2VzF0N0luQmhk/R2dpT2lJdlppOHpP/RGRtTURJeE55MW1O/VGs1TFRRMFpUSXRP/VE5sTXkweE1qUTRP/VFZrTm1FNFpHSXZa/R2d5Y2pkdU1TMDRa/amN6TVRoaU5pMDRN/emhtTFRRMU5EWXRP/RFZtTlMwMlpURmlZ/akV4TURJMVlXRXVj/RzVuSW4xZFhTd2lZ/WFZrSWpwYkluVnli/anB6WlhKMmFXTmxP/bVpwYkdVdVpHOTNi/bXh2WVdRaVhYMC5U/VWM2dlNPRk1DNVk0/QXI4anBaSEx5Qk1V/Q3AzTnFCUGFjOHJn/a2QtMDFB',
+                icon: 'https://imgs.search.brave.com/mor4VRZmqzEEfZGeyRXkZXm3QkzE-BQkfINn0ggE64M/rs:fit:860:0:0:0/g:ce/aHR0cHM6Ly9pbWFn/ZXMtd2l4bXAtZWQz/MGE4NmI4YzRjYTg4/Nzc3MzU5NGMyLndp/eG1wLmNvbS9mLzM4/N2YwMjE3LWY1OTkt/NDRlMi05M2UzLTEy/NDg5NWQ2YThkYi/k[...]',
                 tags: ['Game', 'works offline'],
                 htmlUrl: "./apps/fnaf-2.html"
             },
@@ -567,14 +567,30 @@
             }
             });
 
-            function triggerLauncherDownload() {
-                // Direct browser navigation to fetch & download the static file directly
-                const a = document.createElement('a');
-                a.href = './UnifiedLauncher.html'; // Path to your local launcher file
-                a.download = 'UnifiedLauncher.html';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
+            // Blob-based dynamic downloader function to bypass GoGuardian URL inspection
+            async function triggerLauncherDownload(e) {
+                if (e) e.preventDefault();
+                try {
+                    const response = await fetch('./UnifiedLauncher.html');
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = 'UnifiedLauncher.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    a.remove();
+                } catch (err) {
+                    console.error('Blob download failed, falling back to direct navigation', err);
+                    const a = document.createElement('a');
+                    a.href = './UnifiedLauncher.html';
+                    a.download = 'UnifiedLauncher.html';
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                }
             }
 
             document.getElementById('btn-download-launcher').addEventListener('click', triggerLauncherDownload);
